@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang='ja'>
+<head>
+	<title>Card Generator</title>
+	<meta charset='utf-8'>
+	<link  href='https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.6/cropper.min.css' rel='stylesheet'>
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.6/cropper.min.js'></script>
+	<style>
+		body {
+			margin: 0px;
+			background-color: #151522;
+		}
+	</style>
+</head>
+<body>
+<script>
+	const debugMode = false,
+		previewDiv = document.createElement( 'div' ),
+		preview = document.createElement( 'img' ),
+		canvasDiv = document.createElement( 'div' ),
+		fileInput= document.createElement( 'input' ),
+		canvas = document.createElement( 'canvas' ),
+		bpvicGenerator = canvas.getContext( '2d' ),
+		areaMapping = {
+			areaMap: {
+				urImg: { x: 55, y: 245, w: 240, h: 320 },
+				name: { x: 390, y: 270, w: 420, h: 40 },
+				id: { x: 845, y: 270, w: 150, h: 40 },
+				tw: { x: 420, y: 335, w: 250, h: 30 },
+				dc: { x: 770, y: 335, w: 225, h: 30 },
+				af: { x: 418, y: 395, w: 95, h: 110 },
+				ts: { x: 536, y: 395, w: 95, h: 110 },
+				ba: { x: 655, y: 395, w: 95, h: 110 },
+				sc: { x: 774, y: 395, w: 95, h: 110 },
+				afLv: { x: 445, y: 534, w: 60, h: 30 },
+				tsLv: { x: 565, y: 534, w: 60, h: 30 },
+				baLv: { x: 682, y: 534, w: 60, h: 30 },
+				scLv: { x: 801, y: 534, w: 60, h: 30 },
+				rank: { x: 910, y: 430, w: 85, h: 35 },
+				testCAT: { x: 910, y: 523, w: 55, h: 15 },
+				testCBT: { x: 910, y: 549, w: 55, h: 15 },
+				wd: { x: 860, y: 670, w: 145, h: 35 },
+				hd: { x: 860, y: 723, w: 145, h: 35 },
+				ps1_1: { x: 220, y: 702, w: 25, h: 35 },
+				ps1_2: { x: 290, y: 702, w: 25, h: 35 },
+				ps1_3: { x: 350, y: 702, w: 25, h: 35 },
+				ps1_4: { x: 415, y: 702, w: 25, h: 35 },
+				ps1_5: { x: 477, y: 702, w: 25, h: 35 },
+				ps1_6: { x: 535, y: 702, w: 25, h: 35 },
+				ps1_7: { x: 610, y: 702, w: 25, h: 35 },
+				ps2_1: { x: 220, y: 755, w: 25, h: 35 },
+				ps2_2: { x: 290, y: 755, w: 25, h: 35 },
+				ps2_3: { x: 350, y: 755, w: 25, h: 35 },
+				ps2_4: { x: 415, y: 755, w: 25, h: 35 },
+				ps2_5: { x: 477, y: 755, w: 25, h: 35 },
+				ps2_6: { x: 535, y: 755, w: 25, h: 35 },
+				ps2_7: { x: 610, y: 755, w: 25, h: 35 },
+				playStyleCmt: { x: 110, y: 840, w: 620, h: 85 },
+				vc1: { x: 830, y: 825, w: 60, h: 25 },
+				vc2: { x: 830, y: 860, w: 135, h: 25 },
+				vc3: { x: 830, y: 892, w: 60, h: 25 },
+				ga1: { x: 182, y: 1040, w: 165, h: 25 },
+				ga2: { x: 182, y: 1072, w: 135, h: 25 },
+				ga3: { x: 182, y: 1105, w: 135, h: 25 },
+				ga4: { x: 361, y: 1040, w: 105, h: 25 },
+				ga5: { x: 361, y: 1072, w: 65, h: 25 },
+				gaName: { x: 501, y: 1060, w: 498, h: 55 },
+				ogeYears: { x: 101, y: 1200, w: 88, h: 35 },
+				ogeTitles: { x: 101, y: 1242, w: 360, h: 195 },
+				fc: { x: 501, y: 1200, w: 498, h: 230 }
+			},
+			checkBoxMap: {
+				af: { x: 458, y: 510, w: 15, h: 15 },
+				ts: { x: 576, y: 511, w: 15, h: 15 },
+				ba: { x: 695, y: 511, w: 15, h: 15 },
+				sc: { x: 813, y: 511, w: 15, h: 15 },
+				testCAT: { x: 912, y: 523, w: 15, h: 15 },
+				testCBT: { x: 912, y: 549, w: 15, h: 15 },
+				vc1: { x: 834, y: 831, w: 15, h: 15 },
+				vc2: { x: 834, y: 864, w: 15, h: 15 },
+				vc3: { x: 834, y: 897, w: 15, h: 15 },
+				ga1: { x: 182, y: 1044, w: 15, h: 15 },
+				ga2: { x: 182, y: 1076, w: 15, h: 15 },
+				ga3: { x: 182, y: 1110, w: 15, h: 15 },
+				ga4: { x: 361, y: 1044, w: 15, h: 15 },
+				ga5: { x: 361, y: 1076, w: 15, h: 15 }
+			}
+		},
+		inputArea = {
+			name: new Path2D(), id: new Path2D(),
+			tw: new Path2D(), dc:  new Path2D(),
+			afLv: new Path2D(), tsLv: new Path2D(), baLv: new Path2D(), scLv: new Path2D(),
+			rank: new Path2D(),
+			wd: new Path2D(), hd: new Path2D(),
+			playStyleCmt: new Path2D(),
+			gaName: new Path2D(),
+			ogeYears: new Path2D(), ogeTitles: new Path2D(),
+			fc: new Path2D()
+		},
+		checkBoxMap = {
+			af: new Path2D(), ts: new Path2D(),
+			ba: new Path2D(), sc: new Path2D(),
+			testCAT: new Path2D(), testCBT: new Path2D(),
+			vc1: new Path2D(), vc2: new Path2D(), vc3: new Path2D(),
+			ga1: new Path2D(), ga2: new Path2D(),
+			ga3: new Path2D(), ga4: new Path2D(), ga5: new Path2D()
+		},
+		clickableArea = Object.assign( {}, {
+			urImg: new Path2D(),
+			af: new Path2D(), ts: new Path2D(), ba: new Path2D(), sc: new Path2D(),
+			testCAT: new Path2D(), testCBT: new Path2D(),
+			ps1_1: new Path2D(), ps1_2: new Path2D(), ps1_3: new Path2D(), ps1_4: new Path2D(), ps1_5: new Path2D(), ps1_6: new Path2D(), ps1_7: new Path2D(),
+			ps2_1: new Path2D(), ps2_2: new Path2D(), ps2_3: new Path2D(), ps2_4: new Path2D(), ps2_5: new Path2D(), ps2_6: new Path2D(), ps2_7: new Path2D(),
+			vc1: new Path2D(), vc2: new Path2D(), vc3: new Path2D(),
+			ga1: new Path2D(), ga2: new Path2D(), ga3: new Path2D(), ga4: new Path2D(), ga5: new Path2D()
+		} ),
+		areaMap = Object.assign( {}, inputArea, clickableArea ),
+		bpvic = new Image();
+
+	let hasPreview = false;
+	var cropper, uImg = new Image();
+	previewDiv.setAttribute( 'id', 'previewDiv' );
+	previewDiv.setAttribute( 'style', 'width: 500px; max-height: 500px;' );
+	preview.setAttribute( 'id', 'uImg' );
+	preview.setAttribute( 'src', '' );
+	preview.setAttribute( 'alt', '' );
+	preview.setAttribute( 'style', 'display: none;' );
+	previewDiv.appendChild( preview );
+	canvasDiv.setAttribute( 'id', 'cvDiv' );
+	canvasDiv.setAttribute( 'style', 'width: 1050px; height: 1485px;' );
+	fileInput.setAttribute( 'type', 'file' );
+	fileInput.setAttribute( 'accept', 'image/gif,image/jpeg,image/png,image/bmp' );
+	fileInput.setAttribute( 'style', 'position: relative; top: 207px; left: 55px; color: white;' );
+	fileInput.addEventListener(
+		'change',
+		function () {
+			let file = fileInput.files[0],
+				reader = new FileReader();
+
+			if ( !hasPreview ) {
+				previewDiv.setAttribute( 'style', 'width: 500px; min-height: 500px; max-height: 500px;' );
+				hasPreview = true;
+			}
+
+			reader.addEventListener(
+				'load',
+				function () {
+					preview.src = reader.result;
+					getImgCrop();
+				},
+				false
+			);
+
+			if ( file ) {
+				reader.readAsDataURL( file );
+			}
+			delete file, reader;
+		}
+	);
+	canvasDiv.appendChild( fileInput );
+	canvas.setAttribute( 'id', 'bpvic' );
+	canvas.setAttribute( 'width', 1050 );
+	canvas.setAttribute( 'height', 1485 );
+	canvasDiv.appendChild( canvas );
+	document.body.appendChild( previewDiv );
+	document.body.appendChild( canvasDiv );
+
+
+	var inputBoxes = Object.assign( {}, inputArea );
+	for ( inputBox of Object.keys( inputBoxes ) ) {
+		inputBoxes[ inputBox ] = {
+			type: 'text',
+			value: 'placeHolder'
+		};
+		if ( inputBox.endsWith('Lv') ) {
+			inputBoxes[ inputBox ] = {
+				type: 'int',
+				min: 1,
+				max: 50,
+				value: ''
+			};
+		}
+		if ( inputBox === 'rank' ) {
+			inputBoxes[ inputBox ] = {
+				type: 'int',
+				min: 1,
+				max: 3,
+				value: 1
+			};
+		}
+		if ( inputBox =='ogeYears' ) {
+			inputBoxes[ inputBox ] = {
+				type: 'floatWithOperator',
+				value: 1
+			};
+		}
+	}
+
+	for ( aM of Object.keys( areaMapping.areaMap ) ) {
+		areaMap[ aM ].rect(
+			areaMapping.areaMap[ aM ].x,
+			areaMapping.areaMap[ aM ].y,
+			areaMapping.areaMap[ aM ].w,
+			areaMapping.areaMap[ aM ].h
+		);
+	}
+	for ( cM of Object.keys( areaMapping.checkBoxMap ) ) {
+		checkBoxMap[ cM ].rect(
+			areaMapping.checkBoxMap[ cM ].x,
+			areaMapping.checkBoxMap[ cM ].y,
+			areaMapping.checkBoxMap[ cM ].w,
+			areaMapping.checkBoxMap[ cM ].h
+		);
+	}
+
+	bpvicGenerator.fillStyle = 'rgba( 0, 255, 255, 0.25)';
+	for ( let area of Object.keys( areaMap ) ) {
+		bpvicGenerator.fill( areaMap[ area ] );
+	}
+	bpvicGenerator.fillStyle = 'rgba( 255, 255, 255, 0.25 )';
+	for ( let ck of Object.keys( checkBoxMap ) ) {
+		bpvicGenerator.fill( checkBoxMap[ ck ] );
+	}
+	bpvicGenerator.save();
+
+	canvas.addEventListener(
+		'mousemove',
+		function( e ) {
+			let flag = 'auto';
+			for ( iA of Object.keys( inputArea ) ) {
+				if ( bpvicGenerator.isPointInPath( areaMap[ iA ], e.offsetX, e.offsetY ) ) {
+					flag = 'text';
+					break;
+				}
+			}
+			for ( cA of Object.keys( clickableArea ) ) {
+				if ( bpvicGenerator.isPointInPath( areaMap[ cA ], e.offsetX, e.offsetY ) ) {
+					flag = 'pointer';
+					break;
+				}
+			}
+			if ( flag !== 'auto' ) {
+				this.setAttribute( 'style', 'cursor: ' + flag + ';' );
+			} else if ( this.attributes.hasOwnProperty( 'style' ) ) {
+				this.removeAttribute( 'style' );
+			}
+		}
+	);
+	canvas.addEventListener(
+		'click',
+		function( e ) {
+			for ( area of Object.keys( areaMap ) ) {
+				if ( bpvicGenerator.isPointInPath( areaMap[ area ], e.offsetX, e.offsetY ) ) {
+					clickedArea = area;
+					if ( area === 'urImg' ) {
+						fileInput.click();
+						return;
+					}
+					if ( inputArea.hasOwnProperty( area ) ) {
+						let input = document.createElement( 'input' );
+						input.setAttribute( 'type', 'text' );
+						inputStyles = [
+							'opacity: 1',
+							'display: block',
+							'position: absolute',
+							'padding: 0',
+							'border: none',
+							'left: ' + ( this.offsetLeft + areaMapping.areaMap[ area ].x ) + 'px',
+							'top: ' + ( this.offsetTop + areaMapping.areaMap[ area ].y ) + 'px',
+							'width: ' + ( areaMapping.areaMap[ area ].w ) + 'px',
+							'height: ' + ( areaMapping.areaMap[ area ].h ) + 'px',
+						];
+						input.setAttribute(
+							'style',
+							inputStyles.join( '; ' )
+						);
+						input.addEventListener(
+							'blur',
+							function (){
+								inputBoxes[ clickedArea ].value = this.value;
+								this.remove();
+								drawBG();
+								drawTexts();
+							}
+						);
+						this.after( input );
+						input.focus();
+					}
+					if ( debugMode ) {
+						bpvicGenerator.fillStyle = 'rgba( 255, 0, 255, 0.5 )';
+					}
+				} else if ( debugMode ) {
+					bpvicGenerator.fillStyle = 'rgba( 0, 255, 255, 0.5)';
+				}
+
+				if ( debugMode ) {
+					bpvicGenerator.fill( areaMap[area] );
+				}
+			}
+			// drawTexts();
+			// bpvicGenerator.restore();
+
+		}
+	);
+
+	function getImgCrop(){
+		if ( typeof cropper !== 'undefined' ) {
+			cropper.replace( preview.src );
+			return;
+		}
+		cropper = new Cropper(
+			preview,
+			{
+				aspectRatio: 0.75 / 1,
+				minCanvasWidth: 240,
+				minCanvasHeight: 320,
+				minCropBoxWidth: 240,
+				minCropBoxHeight: 320,
+				crop() {
+					uImg = this.cropper.getCroppedCanvas(
+						{ width:240, height: 320 }
+					).toDataURL();
+					combineUsrImg( uImg );
+				}
+			}
+		);
+	}
+
+	function drawTexts() {
+		bpvicGenerator.fillStyle = 'white';
+		bpvicGenerator.font = '30px sans-serif';
+		bpvicGenerator.fillText( inputBoxes.name.value, 405, 303, 400 );
+		bpvicGenerator.textAlign = 'end';
+		bpvicGenerator.font = '18px sans-serif';
+		bpvicGenerator.fillText( inputBoxes.id.value, 990, 303, 145 );
+		bpvicGenerator.font = '25px sans-serif';
+		bpvicGenerator.fillText( inputBoxes.dc.value, 990, 358, 220 );
+		bpvicGenerator.textAlign = 'start';
+		bpvicGenerator.fillText( inputBoxes.tw.value, 430, 358, 230 );
+		bpvicGenerator.font = '35px sans-serif';
+		bpvicGenerator.textAlign = 'center';
+		bpvicGenerator.fillText( inputBoxes.rank.value, 950, 460 );
+		bpvicGenerator.font = '25px sans-serif';
+		bpvicGenerator.fillText( inputBoxes.afLv.value, 475, 560 );
+		bpvicGenerator.fillText( inputBoxes.tsLv.value, 593, 560 );
+		bpvicGenerator.fillText( inputBoxes.baLv.value, 710, 560 );
+		bpvicGenerator.fillText( inputBoxes.scLv.value, 830, 560 );
+		bpvicGenerator.fillText( inputBoxes.ogeYears.value, 145, 1230 );
+		bpvicGenerator.textAlign = 'end';
+		bpvicGenerator.fillText( inputBoxes.wd.value, 1000, 703 );
+		bpvicGenerator.fillText( inputBoxes.hd.value, 1000, 755 );
+		bpvicGenerator.textAlign = 'start';
+		bpvicGenerator.font = '18px sans-serif';
+		bpvicGenerator.fillText( inputBoxes.playStyleCmt.value, 125, 860, 600 );
+		bpvicGenerator.fillText( inputBoxes.gaName.value, 515, 1080, 470 );
+		bpvicGenerator.font = '18px sans-serif';
+		bpvicGenerator.fillText( inputBoxes.ogeTitles.value, 110, 1265, 345 );
+		bpvicGenerator.fillText( inputBoxes.fc.value, 510, 1225, 480 );
+		// bpvicGenerator.save();
+	}
+
+	function combineUsrImg( uImgArg ) {
+		if ( typeof uImgArg === 'undefined' && uImg.length === 0 ) {
+			return -1;
+		}
+		if ( typeof uImg === 'object' ) {
+			bpvicGenerator.drawImage( uImg, 55, 245 );
+			return;
+		}
+		let img = new Image();
+		img.src = uImgArg;
+		img.onload = function(){
+			bpvicGenerator.clearRect( 55, 245, 240, 320 );
+			bpvicGenerator.drawImage( img, 55, 245 );
+			uImg = img;
+			delete img;
+		}
+	}
+
+	function drawBG() {
+		bpvicGenerator.drawImage( bpvic, 0, 0 );
+		bpvicGenerator.save();
+		combineUsrImg();
+	}
+
+	function init() {
+		if ( bpvic.src.length === 0 ) {
+			bpvic.crossOrigin = "Anonymous";
+			bpvic.src = 'https://pbs.twimg.com/media/EWxOTzwWoAAjTmm?format=jpg&name=large';
+			bpvic.onload = function(){
+				drawBG();
+				drawTexts();
+			};
+			return;
+		}
+	}
+
+	init();
+</script>
+</body>
+</html>
